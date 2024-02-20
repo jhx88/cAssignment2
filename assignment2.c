@@ -12,27 +12,27 @@ typedef struct {
 
 // Function to move a particle within the grid
 void moveParticle(Particle *p, int maxX, int maxY) {
-    if (!p->exists) return;
+    if (!p->exists)
+    return 1;
 
     // Move particle
     p->x += p->vx;
     p->y += p->vy;
 
     // Boundary collision detection for x-axis
-    if (p->x < 0) {
-        p->x = 0;
+    if (p->x == 0 ) {
+        //p->x = 0;
         p->vx = -p->vx;
-    } else if (p->x >= maxX) {
-        p->x = maxX - 1;
+    } else if (p->x == maxX) {
+        //p->x = maxX - 1;
         p->vx = -p->vx;
     }
 
     // Boundary collision detection for y-axis
-    if (p->y < 0) {
-        p->y = 0;
+    if (p->y ==0) {
         p->vy = -p->vy;
-    } else if (p->y >= maxY) {
-        p->y = maxY - 1;
+    } else if (p->y == maxY) {
+       // p->y = maxY - 1;
         p->vy = -p->vy;
     }
 }
@@ -51,52 +51,67 @@ void checkCollisions(Particle particles[], int numParticles) {
 }
 
 // Function to print the grid with particles
-void printGrid(Particle particles[], int numParticles, int maxX, int maxY) {
+void printGrid(Particle particles[], int numParticles, int maxX, int maxY,FILE* outfile) {
     // Print the top border
     for (int x = 0; x < maxX + 2; x++) {
-        printf("*");
+        fprintf(outfile,"*");
     }
-    printf("\n");
+    fprintf(outfile,"\n");
 
     // Print the grid interior and left/right borders
     for (int y = 0; y < maxY; y++) {
-        printf("*"); // Left border
+        fprintf(outfile,"*"); // Left border
         for (int x = 0; x < maxX; x++) {
             bool isParticle = false;
             for (int i = 0; i < numParticles; i++) {
-                if (particles[i].exists && particles[i].x == x && particles[i].y == y) {
-                    printf("+");
+                if (particles[i].exists && particles[i].x == x && (maxY-particles[i].y-1) == y) {
+                    fprintf(outfile,"+");
                     isParticle = true;
                     break;
                 }
             }
             if (!isParticle) {
-                printf(" ");
+                fprintf(outfile," ");
             }
         }
-        printf("*\n"); // Right border
+        fprintf(outfile,"*\n"); // Right border
     }
 
     // Print the bottom border
     for (int x = 0; x < maxX + 2; x++) {
-        printf("*");
+        fprintf(outfile,"*");
     }
-    printf("\n");
+    fprintf(outfile,"\n");
 }
 
 
-int main() {
-    FILE *file = fopen("input.txt", "r");
+int main(int argc, char *argv[]) {
+    if (argc != 3)
+    {
+        // printf("Usage: %s <input_file> <output_file> \n", argv[0]);
+        return 1;
+    }
+
+    char *input = argv[1];
+    char *output = argv[2];
+
+    FILE *file = fopen(input, "r");
+    FILE *outfile = fopen(output, "w");
     if (file == NULL) {
-        perror("Error opening file");
+        fprintf(outfile,"Error");
         return 1;
     }
 
     int maxX, maxY, time;
     fscanf(file, "%d %d %d", &maxX, &maxY, &time);
     // Adjusting the grid size for 0-based indexing and including the border
-    maxX -= 0;
-    maxY -= 0;
+   // maxX -= 0;
+   // maxY -= 0;
+   //error case1
+   if (maxX ==0 ||maxY==0){
+    fprintf(outfile,"Error");
+    return 1;
+   }
 
     Particle particles[MAX_PARTICLES];
     int numParticles = 0;
@@ -107,6 +122,7 @@ int main() {
         if (fscanf(file, "%d,%d,%d,%d%c", &p.x, &p.y, &p.vx, &p.vy, &endOfFileCheck) < 4) break;
         if (endOfFileCheck == 'E') break; // Check for the end of file marker
         p.exists = true;
+       // printf("%d,%d,%d,%d",p.x, p.y, p.vx, p.vy);
         particles[numParticles++] = p;
     }
 
@@ -116,11 +132,12 @@ int main() {
     for (int t = 0; t < time; t++) {
         for (int i = 0; i < numParticles; i++) {
             moveParticle(&particles[i], maxX, maxY);
+           // printf("x,y,%d,%d\n",particles[i].x,particles[i].y);
         }
         checkCollisions(particles, numParticles);
     }
 
-    printGrid(particles, numParticles, maxX, maxY);
+    printGrid(particles, numParticles, maxX, maxY,outfile);
 
     return 0;
 }
