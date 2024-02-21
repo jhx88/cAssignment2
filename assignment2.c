@@ -16,6 +16,9 @@ void moveParticle(Particle *p, int maxX, int maxY)
 {
     if (!p->exists)
         return;
+
+    p->x += p->vx;
+    p->y += p->vy;
     // Boundary collision detection for x-axis
     if (p->x == 0)
     {
@@ -39,8 +42,6 @@ void moveParticle(Particle *p, int maxX, int maxY)
         p->vy = -p->vy;
     }
     // Move particle
-    p->x += p->vx;
-    p->y += p->vy;
 
 
 }
